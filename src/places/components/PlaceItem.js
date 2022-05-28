@@ -1,15 +1,29 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 
 import Card from "../../shared/components/UIElements/Card";
 import Button from "../../shared/components/FormElements/Button";
 import Modal from "../../shared/components/UIElements/Modal";
 import Map from "../../shared/components/UIElements/Map";
+import { AuthContext } from "../../shared/context/auth-context";
 import "./PlaceItem.css";
 
 const PlaceItem = (props) => {
+  const auth = useContext(AuthContext);
   const [showMap, setShowMap] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+
   const openMapHandler = () => setShowMap(true);
   const closeMapHandler = () => setShowMap(false);
+  const openShowConfirmHandler = () => {
+    setShowConfirm(true);
+  };
+  const closeShowConfirmHandler = () => {
+    setShowConfirm(false);
+  };
+  const confirmShowConfirmHandler = () => {
+    setShowConfirm(false);
+    console.log("DELETING...");
+  };
 
   return (
     <>
@@ -25,6 +39,24 @@ const PlaceItem = (props) => {
           <Map center={props.coordinates} zoom={16} />
         </div>
       </Modal>
+      <Modal
+        show={showConfirm}
+        onCancel={closeShowConfirmHandler}
+        header="Are you sure?"
+        footClass="place-item__modal-actions"
+        footer={
+          <>
+            <Button inverse onClick={closeShowConfirmHandler}>
+              CANCEL
+            </Button>
+            <Button danger onClick={confirmShowConfirmHandler}>
+              DELETE
+            </Button>
+          </>
+        }
+      >
+        <p>Delete this place irreversibly ?</p>
+      </Modal>
       <li className="place-item">
         <Card className="place-item__content">
           <div className="place-item__image">
@@ -39,8 +71,14 @@ const PlaceItem = (props) => {
             <Button inverse onClick={openMapHandler}>
               VIEW ON MAP
             </Button>
-            <Button to={`/places/${props.id}`}>EDIT</Button>
-            <Button danger>DELETE</Button>
+            {auth.isLoggedIn && (
+              <>
+                <Button to={`/places/${props.id}`}>EDIT</Button>
+                <Button danger onClick={openShowConfirmHandler}>
+                  DELETE
+                </Button>
+              </>
+            )}
           </div>
         </Card>
       </li>
