@@ -1,35 +1,40 @@
-import PlaceList from "../components/PlaceList";
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 
-const DUMMY_PLACES = [
-  {
-    id: "p1",
-    title: "Wooded Grove",
-    description: "Dimly lit wooded grove.",
-    imageUrl:
-      "https://images.unsplash.com/photo-1647010285526-931fddcbfc43?crop=entropy&cs=tinysrgb&fm=jpg&ixlib=rb-1.2.1&q=80&raw_url=true&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170",
-    address: "1624 4th St SE, Bemidji, MN 56601",
-    location: {
-      lat: 47.4550408,
-      lng: -94.8406445,
-    },
-    creator: "u1",
-  },
-  {
-    id: "p2",
-    title: "Wooded Grove",
-    description: "Dimly lit wooded grove.",
-    imageUrl:
-      "https://images.unsplash.com/photo-1647010285526-931fddcbfc43?crop=entropy&cs=tinysrgb&fm=jpg&ixlib=rb-1.2.1&q=80&raw_url=true&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170",
-    address: "1624 4th St SE, Bemidji, MN 56601",
-    location: {
-      lat: 47.4550408,
-      lng: -94.8406445,
-    },
-    creator: "u2",
-  },
-];
+import PlaceList from "../components/PlaceList";
+import ErrorModal from "../../shared/components/UIElements/ErrorModal";
+import LoadingSpinner from "../../shared/components/UIElements/LoadingSpinner";
+import { useHttpClient } from "../../shared/hooks/http-hook";
+
 const UserPlaces = (props) => {
-  return <PlaceList items={DUMMY_PLACES} />;
+  const [loadedPlaces, setLoadedPlaces] = useState();
+  const { isLoading, error, sendRequest, clearError } = useHttpClient();
+
+  const userId = useParams().userId;
+
+  useEffect(() => {
+    const fetchPlaces = async () => {
+      try {
+        const responseData = await sendRequest(
+          `http://localhost:5000/api/places/user/${userId}`
+        );
+        setLoadedPlaces(responseData.places);
+      } catch (err) {}
+    };
+    fetchPlaces();
+  }, [sendRequest, userId]);
+
+  return (
+    <>
+      <ErrorModal error={error} onClear={clearError} />
+      {isLoading && (
+        <div className="center">
+          <LoadingSpinner />
+        </div>
+      )}
+      {!isLoading && loadedPlaces && <PlaceList items={loadedPlaces} />};
+    </>
+  );
 };
 
 export default UserPlaces;

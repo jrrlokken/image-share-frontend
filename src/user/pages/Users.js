@@ -1,17 +1,38 @@
+import { useEffect, useState } from "react";
+
+import { useHttpClient } from "../../shared/hooks/http-hook";
 import UsersList from "../components/UsersList";
+import ErrorModal from "../../shared/components/UIElements/ErrorModal";
+import LoadingSpinner from "../../shared/components/UIElements/LoadingSpinner";
 
 const Users = () => {
-  const USERS = [
-    {
-      id: "user1",
-      name: "Jimmy Chou",
-      image:
-        "https://imgs.search.brave.com/eppHr5UOKV2Nl62vvjVA8VDROOUdKH-36WZu-Ae5Ziw/rs:fit:1200:1200:1/g:ce/aHR0cHM6Ly9kMmZ4/bjFkN2ZzZGVlby5j/bG91ZGZyb250Lm5l/dC9rZW50dWNreWxp/dmluZy5jb20vd3At/Y29udGVudC91cGxv/YWRzLzIwMjAvMTEv/MjUxMDI4MjgvQWRv/YmVTdG9ja18xODYz/OTY2NjkuanBn",
-      places: 4,
-    },
-  ];
+  const [loadedUsers, setLoadedUsers] = useState();
+  const { isLoading, error, sendRequest, clearError } = useHttpClient();
 
-  return <UsersList items={USERS} />;
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const responseData = await sendRequest(
+          "http://localhost:5000/api/users"
+        );
+
+        setLoadedUsers(responseData.users);
+      } catch (err) {}
+    };
+    fetchUsers();
+  }, [sendRequest]);
+
+  return (
+    <>
+      <ErrorModal error={error} onClear={clearError} />
+      {isLoading && (
+        <div className="center">
+          <LoadingSpinner />
+        </div>
+      )}
+      {!isLoading && loadedUsers && <UsersList items={loadedUsers} />}
+    </>
+  );
 };
 
 export default Users;
